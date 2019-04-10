@@ -1,0 +1,9 @@
+name = "ConvHMM"
+uuid = "b0b6acfa-5731-11e9-1493-95c49135fc2f"
+authors = ["Riyad Muradov <rmuradov@stanford.edu>"]
+version = "0.1.0"
+
+[deps]
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
