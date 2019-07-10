@@ -1,9 +1,9 @@
-function sampleMarkov(n::Int, P::AbstractMatrix, πₚ::AbstractVector)
+function sampleMarkovChain(n::Int, P::AbstractMatrix, πₚ::AbstractVector)
     s = Vector{Int}(undef, n)
-    sampleMarkov!(s, n, P, πₚ)
+    sampleMarkovChain!(s, n, P, πₚ)
 end
 
-function sampleMarkov!(s, n::Int, P::AbstractMatrix, πₚ::AbstractVector)
+function sampleMarkovChain!(s, n::Int, P::AbstractMatrix, πₚ::AbstractVector)
     s[1] = rand(Categorical(πₚ))
     @inbounds for i = 2:n
         s[i] = rand(Categorical(P[s[i-1], :]))
@@ -25,6 +25,7 @@ W!(X::Matrix, n::Int, σ) = map!(x->ω(abs(x[1]-x[2]), σ), X, CartesianIndices(
 Wᵣ(n::Int, λ, γ) = map(x->ωᵣ(x[1]-x[2], λ, γ), CartesianIndices((n,n)))
 Wtrunc(n::Int, σ::Float64, k) = map(x->abs(x[1]-x[2]) <= k ? ω(abs(x[1]-x[2]), σ) : 0, CartesianIndices((n,n)))
 Wᵣtrunc(n::Int, k) = map(x->abs(x[1]-x[2]) <= k ? ωᵣ(abs(x[1]-x[2])) : 0, CartesianIndices((n,n)))
+
 
 # categorical sequence encoding/decoding
 @inline function encode(arr::Union{Vector{Int},Tuple}, k::Int)
@@ -50,9 +51,9 @@ end
 end
 
 
-logsumexp(xs::Vector{T}) where T<:Real = begin
-  largest = maximum(xs)
-  ys = map(x -> exp.(x - largest), xs)
+@inline function logsumexp(x::Vector{T}) where T<:Real
+  xmax = maximum(x)
+  y = map(x -> exp.(x - xmax), x)
 
-  log(sum(ys)) + largest
+  log(sum(y)) + xmax
 end

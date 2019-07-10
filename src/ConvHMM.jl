@@ -3,22 +3,33 @@ module ConvHMM
 using LinearAlgebra
 using Distributions
 using Parameters
-using SparseArrays
-import Distributions: logpdf
-import Base: rand
+import Distributions: logpdf, loglikelihood
 
 include("utils.jl")
 include("convolvedhmm.jl")
+include("likelihoods.jl")
 include("approximator.jl")
-include("baumwelch.jl")
+include("forward.jl")
+include("wavelets.jl")
+
+
 
 export
   ConvolvedHMM,
-  llhmm,
-  ll,
-  forward,
-  backward,
-  propose,
-  randpair
+  logpdf,
+  loglikelihood,
+  sample,
 
+  # wavelets
+  kernelmatrix,
+  Ricker,
+  Ormsby,
+  
+  # forward-backward
+  forward,
+  viterbi,
+
+  # likelihood approximations
+  Truncation,
+  Projection
 end
