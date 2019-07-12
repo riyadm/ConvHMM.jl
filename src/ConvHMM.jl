@@ -19,6 +19,7 @@ export
   logpdf,
   loglikelihood,
   sample,
+  mcmc,
 
   # wavelets
   kernelmatrix,
