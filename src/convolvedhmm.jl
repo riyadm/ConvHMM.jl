@@ -5,7 +5,6 @@ abstract type HMM end
 struct ConvolvedHMM{V,S,M} <: HMM
     μ::V
     σ::V
-    σₐ::S
     W::M
     D::M
     Σᵨ::M
@@ -14,23 +13,27 @@ struct ConvolvedHMM{V,S,M} <: HMM
     logπ₀::V
 end
 
-function ConvolvedHMM(μ::Vector, σ::Vector, σₐ::Real, W::Matrix, Σᵨ::Matrix, P::AbstractMatrix, D = nothing)
+function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, W::AbstractMatrix, Σᵨ::AbstractMatrix, P::AbstractMatrix, D = nothing)
     n = size(W, 1)
     
     @assert (length(μ) == length(σ) && size(Σᵨ, 1) == n) || "dimensions mismatch"
-    @assert isposdef(Σᵨ) "covariance matrix not positive definite"
+    @assert isposdef(Σᵨ) "correlation matrix not positive definite"
     @assert isstochastic(P) "invalid stochastic matrix P"
     
     if D == nothing
         @warn "differential matrix defaulted to identity"
         D = diagm(0 => ones(n))
     end
-    Σₐ = diagm(0 => fill(σₐ, n)) 
+    Σₐ = diagm(0 => fill(σₙ², n)) 
     e = eigen(Matrix(P'))
     π₀ = abs.(normalize(e.vectors[:, findfirst(e.values .≈ 1.)], 1))
     
-    ConvolvedHMM{typeof(μ),typeof(σₐ),typeof(W)}(μ, σ, σₐ, W, D, Σᵨ, Σₐ, log.(P), log.(π₀))
+    V = promote_type(typeof(μ), typeof(σ))
+    S = promote_type(typeof(σₙ²), eltype(σ))
+    M = promote_type(typeof(W), typeof(Σᵨ))
+    ConvolvedHMM{V,S,M}(μ, σ, W, D, Σᵨ, Σₐ, log.(P), log.(π₀))
 end
+
 
 nstates(hmm::ConvolvedHMM) = length(hmm.μ)
 
@@ -45,7 +48,7 @@ function sample(hmm::ConvolvedHMM)
 end
 
 function sample(hmm::ConvolvedHMM, s)
-  @unpack μ, σ, σₐ, W, D, Σᵨ, Σₐ, logP, logπ₀ = hmm
+  @unpack μ, σ, W, D, Σᵨ, Σₐ, logP, logπ₀ = hmm
   n = size(Σᵨ, 1)
   Σₛ = Diagonal(σ[s])
   μₛ = μ[s]
@@ -62,15 +65,8 @@ function loglikelihood(s, d, μ, σ, Σₐ, H, Σᵨ)
   logpdf(MvNormal(μd, Matrix(Hermitian(Σd))), d)
 end
 
-function loglikelihood1d(s, d, μs, σs, σₐ, w, Σᵨ)
-  Σₛ = Diagonal(σs[s])
-  σd = w' * Σₛ * Σᵨ * Σₛ * w .+ σₐ
-  μd = w' * μs[s]
-  logpdf(Normal(μd, σd), d)
-end
-
 function Distributions.logpdf(hmm::ConvolvedHMM, s::AbstractArray, data::Vector)
-    @unpack μ, σ, σₐ, W, D, Σᵨ, Σₐ, logP, logπ₀ = hmm
+    @unpack μ, σ, W, D, Σᵨ, Σₐ, logP, logπ₀ = hmm
     l = logπ₀[s[1]]
     @inbounds for i = 2:length(s)
       l += logP[s[i-1], s[i]]

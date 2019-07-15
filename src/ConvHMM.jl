@@ -3,6 +3,8 @@ module ConvHMM
 using LinearAlgebra
 using Distributions
 using Parameters
+using Random: shuffle
+
 import Distributions: logpdf, loglikelihood
 
 include("utils.jl")
