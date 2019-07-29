@@ -56,19 +56,3 @@ end
 
   log(sum(y)) + xmax
 end
-
-function mcmc(ks, lls, lls_approx)
-  samples = []
-  ps = []
-  prev_i = rand(1:length(ks))
-  for i = shuffle(1:length(ks))
-    p = min(1, exp(lls[i] - lls[prev_i] - lls_approx[i] + lls_approx[prev_i]))
-    push!(ps, p)
-    if rand() < p
-      push!(samples, ks[i])
-      prev_i = i
-    end
-  end
-  α = mean(ps)
-  samples, α
-end
