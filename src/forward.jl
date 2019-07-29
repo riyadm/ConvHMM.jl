@@ -20,7 +20,7 @@ function forward(hmm::T, obs::Vector, k::Int, approximation::Type{L}) where {T<:
   seq = Vector{Int}(undef, k)
     
   # top sequence
-  for s in subseqs
+  @inbounds for s in subseqs
     for s1 = 1:nk
       seq = vcat(s1, s...)
       q[s1] = logπ₀[s1] + likelihood(seq[1:1], obs, 1:1) / k
@@ -33,7 +33,7 @@ function forward(hmm::T, obs::Vector, k::Int, approximation::Type{L}) where {T<:
   end
   
   # intermediate subsequences    
-  for t = 2:(n-k)
+  @inbounds for t = 2:(n-k)
     range = t:t+r
     for s in subseqs
       for s1 = 1:nk    
@@ -47,7 +47,7 @@ function forward(hmm::T, obs::Vector, k::Int, approximation::Type{L}) where {T<:
   end
   
   # last element
-  for s in subseqs
+  @inbounds for s in subseqs
     for s1 = 1:nk
       seq = vcat(s1, s...)
       q[s1] = likelihood(seq[end:end], obs, n:n) / k
@@ -64,5 +64,8 @@ function forward(hmm::T, obs::Vector, k::Int, approximation::Type{L}) where {T<:
     zi[end][encode(s, nk)] = logsumexp(q) + logP[s[end-1], s[end]]
   end
   
-  HMMApproximator(hmm, zi, ll, k)
+  # normalization constant
+  z = zi[end] .- logsumexp(zi[end])
+  
+  HMMApproximator(hmm, obs, zi, ll, z, n, nk, k)
 end
