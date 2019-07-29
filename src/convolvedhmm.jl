@@ -14,26 +14,32 @@ struct ConvolvedHMM{V,S,M} <: HMM
 end
 
 function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, W::AbstractMatrix, Σᵨ::AbstractMatrix, P::AbstractMatrix, D = nothing)
-    n = size(W, 1)
+  n = size(W, 1)
     
-    @assert (length(μ) == length(σ) && size(Σᵨ, 1) == n) || "dimensions mismatch"
-    @assert isposdef(Σᵨ) "correlation matrix not positive definite"
-    @assert isstochastic(P) "invalid stochastic matrix P"
+  @assert (length(μ) == length(σ) && size(Σᵨ, 1) == n) || "dimensions mismatch"
+  @assert isposdef(Σᵨ) "correlation matrix not positive definite"
+  @assert isstochastic(P) "invalid stochastic matrix P"
     
-    if D == nothing
-        @warn "differential matrix defaulted to identity"
-        D = diagm(0 => ones(n))
-    end
-    Σₐ = diagm(0 => fill(σₙ², n)) 
-    e = eigen(Matrix(P'))
-    π₀ = abs.(normalize(e.vectors[:, findfirst(e.values .≈ 1.)], 1))
+  if D == nothing
+      @warn "differential matrix defaulted to identity"
+      D = diagm(0 => ones(n))
+  end
+  Σₐ = diagm(0 => fill(σₙ², n)) 
+  e = eigen(Matrix(P'))
+  π₀ = abs.(normalize(e.vectors[:, findfirst(e.values .≈ 1.)], 1))
     
-    V = promote_type(typeof(μ), typeof(σ))
-    S = promote_type(typeof(σₙ²), eltype(σ))
-    M = promote_type(typeof(W), typeof(Σᵨ))
-    ConvolvedHMM{V,S,M}(μ, σ, W, D, Σᵨ, Σₐ, log.(P), log.(π₀))
+  V = promote_type(typeof(μ), typeof(σ))
+  S = promote_type(typeof(σₙ²), eltype(σ))
+  M = promote_type(typeof(W), typeof(Σᵨ))
+  ConvolvedHMM{V,S,M}(μ, σ, W, D, Σᵨ, Σₐ, log.(P), log.(π₀))
 end
 
+function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, ρ, ω, n::Int, P::AbstractMatrix, D = nothing)
+  W  = kernelmatrix(ω, n)
+  Σᵨ = Matrix(Symmetric(kernelmatrix(ρ, n)))
+  
+  ConvolvedHMM(μ, σ, σₙ², W, Σᵨ, P, D)
+end
 
 nstates(hmm::ConvolvedHMM) = length(hmm.μ)
 
