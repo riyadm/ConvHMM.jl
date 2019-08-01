@@ -79,7 +79,7 @@ function viterbi(approx::HMMApproximator)
   s[n-r+1:n] = decode(idx, nk, r)
   ll += zi[end][idx]
 
-  for i = n-r:-1:2  
+  @inbounds for i = n-r:-1:2  
     for s1 = 1:nk
       s[i] = s1
       p[s1] = logP[s[i+r-1], s[i+r]] + llfw[i][encode(s[i:i+r], nk)] - zi[i][encode(s[i+1:i+r], nk)]
@@ -90,7 +90,7 @@ function viterbi(approx::HMMApproximator)
   end
 
   # first element
-  for s1 = 1:nk
+  @inbounds for s1 = 1:nk
     s[1] = s1
     p[s1] = llfw[1][encode(s[1:k], nk)] - zi[1][encode(s[2:k], nk)]
   end

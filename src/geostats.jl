@@ -5,7 +5,7 @@ export HMM
 
 
 """
-    HMM(var₁=>param₁, var₂=>param₂, ...)
+    HMM((var₁,=>param)
 
 Markov-Switching linear Gaussian simulation. Allows joint simulation of facies and petrophysical properties through inference from observed signal. 
 

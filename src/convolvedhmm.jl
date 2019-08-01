@@ -16,7 +16,7 @@ end
 function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, W::AbstractMatrix, Σᵨ::AbstractMatrix, P::AbstractMatrix, D = nothing)
   n = size(W, 1)
     
-  @assert (length(μ) == length(σ) && size(Σᵨ, 1) == n) || "dimensions mismatch"
+  @assert (length(μ) == length(σ) && size(Σᵨ, 1) == n) "dimensions mismatch"
   @assert isposdef(Σᵨ) "correlation matrix not positive definite"
   @assert isstochastic(P) "invalid stochastic matrix P"
     
@@ -30,11 +30,11 @@ function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, W::AbstractMatrix, 
     
   V = promote_type(typeof(μ), typeof(σ))
   S = promote_type(typeof(σₙ²), eltype(σ))
-  M = promote_type(typeof(W), typeof(Σᵨ))
+  M = promote_type(typeof(W), typeof(Σᵨ), typeof(P))
   ConvolvedHMM{V,S,M}(μ, σ, W, D, Σᵨ, Σₐ, log.(P), log.(π₀))
 end
 
-function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, ρ, ω, n::Int, P::AbstractMatrix, D = nothing)
+function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, ω, ρ, n::Int, P::AbstractMatrix, D = nothing)
   W  = kernelmatrix(ω, n)
   Σᵨ = Matrix(Symmetric(kernelmatrix(ρ, n)))
   
