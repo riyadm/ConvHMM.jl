@@ -9,11 +9,11 @@ using Requires
 import Distributions: logpdf, loglikelihood
 
 include("utils.jl")
+include("wavelets.jl")
 include("convolvedhmm.jl")
 include("likelihoods.jl")
 include("approximator.jl")
 include("forward.jl")
-include("wavelets.jl")
 
 # optionally load GeoStats.jl API
 # function __init__()
@@ -37,6 +37,7 @@ export
   viterbi,
 
   # likelihood approximations
+  LikelihoodApproximation,
   Truncation,
   Projection
 end

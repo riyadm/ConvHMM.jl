@@ -1,5 +1,17 @@
+"""
+    LikelihoodApproximation
+
+An HMM likelihood approximation.
+"""
 abstract type LikelihoodApproximation{T} end
 
+"""
+    Truncation(hmm)
+
+Constructs a truncation likelihood approximation object for `hmm`.
+
+See also: [`Projection`](@ref)
+"""
 struct Truncation{T<:HMM} <: LikelihoodApproximation{T}
   hmm::T
 end
@@ -13,6 +25,13 @@ function (ll::Truncation)(seq::Vector, obs::Vector, range)
   loglikelihood(seq, d, μ, σ, Sₐ, H, Sᵨ) #/ length(range)
 end
 
+"""
+    Projection(hmm)
+
+Constructs a projection likelihood approximation object for `hmm`.
+
+See also: [`Truncation`](@ref)
+"""
 struct Projection{T<:HMM,V<:AbstractVector,M<:AbstractMatrix} <: LikelihoodApproximation{T}
   hmm::T
   μ₁::V
@@ -66,7 +85,7 @@ end
 """
     project(hmm)
 
-Computes Gaussian mixture approximation to `p(m)`. Returns mean and covariance of n-dimensional marginal Gaussian.
+Computes Gaussian mixture approximation to `p(m)`. Returns mean and covariance of an `n`-dimensional marginal Gaussian.
 """
 function project(hmm::ConvolvedHMM)
   @unpack μ, σ, logP, Σᵨ, logπ₀ = hmm

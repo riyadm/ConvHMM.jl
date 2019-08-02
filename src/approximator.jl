@@ -1,3 +1,8 @@
+"""
+    HMMApproximator
+
+Sampleable approximator object.
+"""
 mutable struct HMMApproximator{T<:HMM}
   hmm::T
   obs::Vector
@@ -9,7 +14,11 @@ mutable struct HMMApproximator{T<:HMM}
   k::Int
 end
 
+"""
+    sample(approx::HMMApproximator,n=1)
 
+Sample `n` sequences from `approx` using generalized Backward procedure.
+"""
 function sample(approx::HMMApproximator)
   @unpack hmm, zi, llfw, k, n, z, nk = approx
   @unpack logP = hmm

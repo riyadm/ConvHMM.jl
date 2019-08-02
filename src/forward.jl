@@ -1,5 +1,9 @@
-# TODO: non-allocating version of `forward`
-function forward(hmm::T, obs::Vector, k::Int, approximation::Type{L}) where {T<:HMM,L<:LikelihoodApproximation}
+"""
+    forward(hmm, obs, approx, k=3)
+
+Compute forward probabilities for `hmm` with observations `obs` using likelihood approximation `approx` of order `k`. Returns an [`HMMApproximator`](@ref) object. 
+"""
+function forward(hmm::T, obs::Vector, approx::Type{L}, k::Int = 3) where {T<:HMM,L<:LikelihoodApproximation}
   @unpack logP, logπ₀ = hmm
   
   n = length(obs)
@@ -7,7 +11,7 @@ function forward(hmm::T, obs::Vector, k::Int, approximation::Type{L}) where {T<:
   r = k - 1
     
   # initialize likelihood approximation
-  likelihood = approximation(hmm)
+  likelihood = approx(hmm)
     
   # iterator over subsequences of length (k-1)
   subseqs = Iterators.product([1:nk for _ in 1:r]...)

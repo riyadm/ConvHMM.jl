@@ -19,7 +19,6 @@ function kernelmatrix(v::Vector, n::Int)
     Matrix(hcat(m...)')
 end
 
-
 struct Ricker <: Wavelet
   f::Real
   dt::Real
@@ -31,7 +30,6 @@ function (w::Ricker)(h::Int)
   x = (π * w.f * t) .^ 2
   A = (1 .- 2x) .* exp.(-x) 
 end
-
 
 struct Ormsby <: Wavelet
   f::NTuple{4,Real}

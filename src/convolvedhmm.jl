@@ -1,7 +1,26 @@
-struct MarkovChain end
-
 abstract type HMM end
 
+"""
+    ConvolvedHMM(P, μ, σ, Σᵨ, W, σₙ²)
+    ConvolvedHMM(P, μ, σ, ρ, ω, σₙ², n)
+
+A convolved HMM model. If functions `ρ` and `ω` are used to define correlation and wavelet kernels, sequence length `n` has to be provided. For matrix definition `size(Σᵨ,1) == size(W,1) == n` is assumed.
+
+## Arguments
+
+* `P` - stochastic matrix (`KxK`)
+* `μ` - vector of emission means (`Kx1`)
+* `σ` - vector of emission standrd deviations (`Kx1`)
+
+* `Σᵨ` - emission correlation matrix (`nxn`)
+* `ρ` - stationary correlation function or a callable object of the form ``ρ(h)``
+
+* `W` - transformation matrix from emissions to observations
+* `ω` - stationary wavelet or a callable object of the form ``ω(h)``
+
+* `σₙ²` - observation noise variance
+* `n` - latent sequence length
+"""
 struct ConvolvedHMM{V,S,M} <: HMM
     μ::V
     σ::V
@@ -13,7 +32,7 @@ struct ConvolvedHMM{V,S,M} <: HMM
     logπ₀::V
 end
 
-function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, W::AbstractMatrix, Σᵨ::AbstractMatrix, P::AbstractMatrix, D = nothing)
+function ConvolvedHMM(P::AbstractMatrix, μ::Vector, σ::Vector, Σᵨ::AbstractMatrix, W::AbstractMatrix, σₙ²::Real, D = nothing)
   n = size(W, 1)
     
   @assert (length(μ) == length(σ) && size(Σᵨ, 1) == n) "dimensions mismatch"
@@ -34,15 +53,25 @@ function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, W::AbstractMatrix, 
   ConvolvedHMM{V,S,M}(μ, σ, W, D, Σᵨ, Σₐ, log.(P), log.(π₀))
 end
 
-function ConvolvedHMM(μ::Vector, σ::Vector, σₙ²::Real, ω, ρ, n::Int, P::AbstractMatrix, D = nothing)
+function ConvolvedHMM(P::AbstractMatrix, μ::Vector, σ::Vector, ρ, ω, n::Int, σₙ²::Real, D = nothing)
   W  = kernelmatrix(ω, n)
   Σᵨ = Matrix(Symmetric(kernelmatrix(ρ, n)))
   
-  ConvolvedHMM(μ, σ, σₙ², W, Σᵨ, P, D)
+  ConvolvedHMM(P, μ, σ, Σᵨ, W, σₙ², D)
 end
 
+"""
+    nstates(hmm)
+
+Return the hidden state space size of `hmm`.
+"""
 nstates(hmm::ConvolvedHMM) = length(hmm.μ)
 
+"""
+    sample(hmm)
+
+Sample `(state sequence, emissions, observations)` triple from `hmm`. 
+"""
 function sample(hmm::ConvolvedHMM)
   @unpack Σᵨ, logP, logπ₀ = hmm
   n = size(Σᵨ, 1)
@@ -53,6 +82,11 @@ function sample(hmm::ConvolvedHMM)
   s, m, d
 end
 
+"""
+    sample(hmm, s)
+
+Sample tuple `(emissions, observations)` from `hmm`, conditioned to a state sequence `s`.
+"""
 function sample(hmm::ConvolvedHMM, s)
   @unpack μ, σ, W, D, Σᵨ, Σₐ, logP, logπ₀ = hmm
   n = size(Σᵨ, 1)
@@ -63,7 +97,7 @@ function sample(hmm::ConvolvedHMM, s)
   m, d
 end
 
-# likelihood function p(d|s)
+# log-likelihood function p(d|s)
 function loglikelihood(s, d, μ, σ, Σₐ, H, Σᵨ)
   Σₛ = Diagonal(σ[s])
   Σd = H * Σₛ * Σᵨ * Σₛ * H' .+ Σₐ
@@ -71,15 +105,25 @@ function loglikelihood(s, d, μ, σ, Σₐ, H, Σᵨ)
   logpdf(MvNormal(μd, Matrix(Hermitian(Σd))), d)
 end
 
-function Distributions.logpdf(hmm::ConvolvedHMM, s::AbstractArray, data::Vector)
+"""
+    logpdf(hmm, s, obs)
+
+Evaluate the logarithm of the joint probability density ``p(s|d)`` of `hmm` provided latent sequence `s` and observation vector `obs`.
+"""
+function Distributions.logpdf(hmm::ConvolvedHMM, s::AbstractArray, obs::Vector)
     @unpack μ, σ, W, D, Σᵨ, Σₐ, logP, logπ₀ = hmm
     l = logπ₀[s[1]]
     @inbounds for i = 2:length(s)
       l += logP[s[i-1], s[i]]
     end
     
-    l += loglikelihood(s, data, μ, σ, Σₐ, W * D, Σᵨ)
+    l += loglikelihood(s, obs, μ, σ, Σₐ, W * D, Σᵨ)
     l
 end
 
+"""
+    isstochastic(P)
+
+Check if `P` is a valid stochastic matrix.
+"""
 @inline isstochastic(P::AbstractMatrix) = all(sum(P, dims=2) .≈ 1.) && isequal(size(P)...)

@@ -11,22 +11,6 @@ function sampleMarkovChain!(s, n::Int, P::AbstractMatrix, πₚ::AbstractVector)
     s
 end
 
-# kernel (spatial correlation function)
-ρₘ(h::Int, range) = exp(-(h/range)^2)
-Σᵨ(n::Int, range) = map(x->ρₘ(abs(x[1]-x[2]), range), CartesianIndices((n,n)))
-Σᵨ!(X::Matrix, n::Int, range::Real) = map!(x->ρₘ(abs(x[1]-x[2]), range), X, CartesianIndices((n,n)))
-Σᵨtrunc(n::Int, k) = map(x->abs(x[1]-x[2]) <= k ? ρₘ(abs(x[1]-x[2])) : 0, CartesianIndices((n,n)))
-
-# convolution matrix
-ω(τ::Int, σ::Float64) = (1 / √(2σ*π)) * exp(-.5(τ / σ)^2)
-ωᵣ(t::Int, λ, γ) = γ * (1 - (t / λ)^2) * exp(-0.5(t / λ)^2)
-W(n::Int, σ) = map(x->ω(abs(x[1]-x[2]), σ), CartesianIndices((n,n)))
-W!(X::Matrix, n::Int, σ) = map!(x->ω(abs(x[1]-x[2]), σ), X, CartesianIndices((n,n)))
-Wᵣ(n::Int, λ, γ) = map(x->ωᵣ(x[1]-x[2], λ, γ), CartesianIndices((n,n)))
-Wtrunc(n::Int, σ::Float64, k) = map(x->abs(x[1]-x[2]) <= k ? ω(abs(x[1]-x[2]), σ) : 0, CartesianIndices((n,n)))
-Wᵣtrunc(n::Int, k) = map(x->abs(x[1]-x[2]) <= k ? ωᵣ(abs(x[1]-x[2])) : 0, CartesianIndices((n,n)))
-
-
 # categorical sequence encoding/decoding
 @inline function encode(arr::Union{Vector{Int},Tuple}, k::Int)
   s = 1
