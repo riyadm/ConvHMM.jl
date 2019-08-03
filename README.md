@@ -3,6 +3,6 @@ Implementation of Convolved HMM (Markov-Switching Gaussian Process) described in
 
 ## Installation
 Currently, the package can be installed by running the following command
-'''julia
+```julia
 ]add https://github.com/riyadm/ConvHMM.jl
-'''
+```
