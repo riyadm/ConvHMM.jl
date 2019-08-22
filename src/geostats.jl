@@ -28,7 +28,7 @@ Markov models.*
   @param transitions
   @param linop
   @param means
-  @param std
+  @param stds
   @param noise = 1e-6
   @param approx = Projection
   @param range = 3
@@ -39,17 +39,22 @@ function preprocess(problem::SimulationProblem, solver::HMMSim)
   # result of preprocessing
   preproc = Dict{Symbol,NamedTuple}()
 
-  for (var, V) in variables(problem)
-  end
+  params = first(values(solver.params))
+  n = size(params.linop, 1)
+  Σ = kernelmatrix(params.variogram, n)
+  hmm = ConvolvedHM(params.transitions,
+                    params.means,
+		    params.stds,
+                    params.Σ,
+                    params.linop,
+                    params.noise)
 
   preproc
 end
 
-function solve(problem::SimulationProblem, var::Symbol,
-                      solver::HMMSim, preproc)
+function solve(problem::SimulationProblem, solver::HMMSim)
   # retrieve domain size
   sz = size(domain(problem))
 
-  # determine result type
-  V = variables(problem)[var]
+  
 end
