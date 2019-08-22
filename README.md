@@ -22,7 +22,7 @@ n = 100
 # stochastic matrix
 P = [.8 .1 .1;
      .1 .8 .1;
-	 .1 .1 .8]
+     .1 .1 .8]
 	 
 # Gaussian correlogram
 ρ(h) = exp(-h^2/2)
