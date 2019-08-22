@@ -16,9 +16,9 @@ include("approximator.jl")
 include("forward.jl")
 
 # optionally load GeoStats.jl API
-# function __init__()
-#     @require GeoStatsBase="323cb8eb-fbf6-51c0-afd0-f8fba70507b2" include("geostats.jl")
-# end
+function __init__()
+  @require GeoStatsBase="323cb8eb-fbf6-51c0-afd0-f8fba70507b2" include("geostats.jl")
+end
 
 export
   ConvolvedHMM,
@@ -31,7 +31,7 @@ export
   kernelmatrix,
   Ricker,
   Ormsby,
-  
+
   # forward-backward
   forward,
   viterbi,

@@ -1,13 +1,13 @@
 using .GeoStatsBase
-import .GeoStatsBase: preprocess, solve_single
+import .GeoStatsBase: preprocess, solve
 
-export HMM
+export HMMSim
 
 
 """
-    HMM((var₁,=>param)
+    HMMSim((var₁,=>param)
 
-Markov-Switching linear Gaussian simulation. Allows joint simulation of facies and petrophysical properties through inference from observed signal. 
+Markov-Switching linear Gaussian simulation. Allows joint simulation of facies and petrophysical properties through inference from observed signal.
 
 ## Parameters
 * `variogram`   - theoretical variogram (default to GaussianVariogram())
@@ -23,18 +23,18 @@ Markov-Switching linear Gaussian simulation. Allows joint simulation of facies a
 Rimstad 2013. *Approximate posterior distributions for convolutional two-level hidden
 Markov models.*
 """
-@simsolver HMM begin
-  @param variogram = GaussianVariogram()
-  @param transitions = nothing
-  @param linop = nothing
-  @param means = nothing
-  @param vars = nothing
+@simsolver HMMSim begin
+  @param variogram
+  @param transitions
+  @param linop
+  @param means
+  @param std
   @param noise = 1e-6
   @param approx = Projection
   @param range = 3
 end
 
-function preprocess(problem::SimulationProblem, solver::HMM)
+function preprocess(problem::SimulationProblem, solver::HMMSim)
 
   # result of preprocessing
   preproc = Dict{Symbol,NamedTuple}()
@@ -45,8 +45,8 @@ function preprocess(problem::SimulationProblem, solver::HMM)
   preproc
 end
 
-function solve_single(problem::SimulationProblem, var::Symbol,
-                      solver::HMM, preproc)
+function solve(problem::SimulationProblem, var::Symbol,
+                      solver::HMMSim, preproc)
   # retrieve domain size
   sz = size(domain(problem))
 
